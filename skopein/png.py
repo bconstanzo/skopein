@@ -57,7 +57,7 @@ def parse_png(data, *, flag_crc_check=True):
         try:
             chunk = Chunk(data[pos:], start=pos, flag_crc_check=flag_crc_check)
         except Exception as e:
-            print(e)
+            # print(e)
             return chunks
         chunks.append(chunk)
         pos += chunk.length + 12

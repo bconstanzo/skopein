@@ -124,7 +124,7 @@ def parse_jpg(data):
             #   JPG files (for example, Canon and Sony like storing extra
             #   information past the EOI marker)
             # TODO: test on carved files to double check how it works with them
-            print(e)
+            # print(e)
             return segments
         segments.append(seg)
         pos += seg.length + 2
