@@ -132,7 +132,7 @@ def parse_jpg(data):
 
 def parse_dqt(data):
     """
-    Parses a DHT Segment (or raw bytes from one) to extract the quantization
+    Parses a DQT Segment (or raw bytes from one) to extract the quantization
     tables defined in it. Can extract multiple QTs if present.
 
     :param data: Segment or bytes
