@@ -1,5 +1,7 @@
 # we don't want to upload test files...
 test_files/*
+# ...nor line profiler files
+*.lprof
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
