@@ -33,7 +33,7 @@ class Chunk:
     def parse(self):
         data = self.rawbytes
         self.length, = struct.unpack(">L", data[:4])
-        ctype = data[4:8]
+        ctype = bytes(data[4:8])
         if not valid_ctype(ctype):
             raise ValueError("Invalid chunk type in file!")
         self.ctype = ctype.decode("utf-8")
@@ -46,7 +46,7 @@ class Chunk:
                 raise ValueError("Invalid CRC32 for chunk!")
         self.rawbytes = data[:self.length + 12]
     
-def parse_png(data):
+def parse_png(data, *, flag_crc_check=True):
     chunks = []
     if data[:8] != b'\x89PNG\r\n\x1a\n':
         # literal value from the spec, obtained doing
@@ -55,7 +55,7 @@ def parse_png(data):
     pos = 8
     while pos < len(data):
         try:
-            chunk = Chunk(data[pos:], start=pos)
+            chunk = Chunk(data[pos:], start=pos, flag_crc_check=flag_crc_check)
         except Exception as e:
             print(e)
             return chunks
