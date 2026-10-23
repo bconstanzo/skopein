@@ -56,7 +56,7 @@ class Segment:
         self.psegments = psegments
         self.segment_table = []
         self.segment_table = struct.unpack_from(">" + psegments * "B", data, offset=27)
-        self.length = 28 + psegments + sum(self.segment_table) - 1
+        self.length = 27 + psegments + sum(self.segment_table)
 
 
 
