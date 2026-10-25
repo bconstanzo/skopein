@@ -28,6 +28,7 @@ class Page:
         self.psegments = 0
         self.segment_table = []
         self.segments = []
+        self.opus_tags = ()
         self.parse(debug=debug)
 
     def __repr__(self):
@@ -41,17 +42,14 @@ class Page:
         )
 
     def __str__(self):
-            return (
-                f"< {self.__class__.__qualname__}"
-                f" pattern: {self.pattern}"
-                f" htype: {self.htype}"
-                f" bsn: {self.bsn}"
-                f" psn: {self.psn}"
-                f" segment_table: {self.segment_table}"
-                f" start={self.start}"
-                f" length={self.length}"
-                f" >"
-            )
+            return "\n".join( e for e in [
+                f"< {self.__class__.__qualname__}",
+                f"     pattern: {self.pattern}, htype: {self.htype}",
+                f"     bsn: {self.bsn}, psn: {self.psn}",
+                f"     start={self.start}, length={self.length}",
+                f"     tags={self.opus_tags}" if self.opus_tags else None,
+                f" >",
+            ] if e)
 
     def parse(self, *, debug=False):
         """
@@ -76,7 +74,10 @@ class Page:
         self.length = 27 + psegments + sum(self.segment_table)
         sbase = 27 + psegments
         for slen in self.segment_table:
-            self.segments.append( data[sbase: sbase + slen] )
+            segment = data[sbase: sbase + slen]
+            if segment.startswith(b"OpusTags"):
+                self.opus_tags = _opustags(segment)
+            self.segments.append( segment )
             sbase += slen
 
 
@@ -99,3 +100,18 @@ def parse(data, *, debug=False):
         segments.append(seg)
         pos += 1
     return segments
+
+def _opustags(data):
+    header, enclen = struct.unpack_from("<8sL", data)
+    encoder = data[12: 12 + enclen].decode("utf-8")
+    tag_base = 12 + enclen
+    num_tags, = struct.unpack("<L", data[tag_base : tag_base + 4])
+    tag_base += 4
+    tags = []
+    for i in range(num_tags):
+        taglen, = struct.unpack("<L", data[tag_base:tag_base+4])
+        tag_base += 4
+        tag = data[tag_base: tag_base + taglen].decode("utf-8")
+        tag_base += taglen
+        tags.append(tag)
+    return encoder, tags
