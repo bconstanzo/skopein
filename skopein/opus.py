@@ -1,7 +1,18 @@
 import struct
 
-class Segment:
-    def __init__(self, rawbytes, *, start=0, length=0):
+class Page:
+    def __init__(self, rawbytes, *, start=0, length=0, debug=False):
+        """
+        Structure for an OGG/Opus Page, that inside contains segments.
+
+        :param rawbytes: the bytes read from a file. One page is parsed at a
+            time. If multiple pages must be read, different Page objects have
+            to be instantiated.
+        :param start: (keyword only, 0) start position of the Page in the file
+        :param length: (keyword only, 0) unused, it gets overwritten on the 
+            self.parse() call at the end of __init__
+        :param debug: (keyword only, False) turns on debug printing/complaining
+        """
         self.rawbytes = rawbytes
         self.data = b""
         self.start = start
@@ -17,7 +28,7 @@ class Segment:
         self.psegments = 0
         self.segment_table = []
         self.segments = []
-        self.parse()
+        self.parse(debug=debug)
 
     def __repr__(self):
         return (
@@ -42,7 +53,13 @@ class Segment:
                 f" >"
             )
 
-    def parse(self):
+    def parse(self, *, debug=False):
+        """
+        Parses the rawbytes used to instantiate the Page. Called at the end of
+        __init__ to parse the byte structure.
+
+        :param debug: (keyword only, False) turns on debug printing/complaining
+        """
         data = self.rawbytes
         pattern, ver, htype, granule, bsn, psn, crc, psegments = \
             struct.unpack(">4sBBQLLLB", data[:27])
@@ -57,15 +74,25 @@ class Segment:
         self.segment_table = []
         self.segment_table = struct.unpack_from(">" + psegments * "B", data, offset=27)
         self.length = 27 + psegments + sum(self.segment_table)
+        sbase = 27 + psegments
+        for slen in self.segment_table:
+            self.segments.append( data[sbase: sbase + slen] )
+            sbase += slen
 
 
 
-def parse(data):
+def parse(data, *, debug=False):
+    """
+    Parses a stream of bytes into OGG/Opus Pages.
+
+    :param data: bytes to be parsed
+    :param debug: (keyword only, False) turns on debug printing/complaining
+    """
     segments = []
     pos = 0
     while ( pos := data.find(b"OggS", pos) ) != -1:
         try:
-            seg = Segment(data[pos:], start=pos)
+            seg = Page(data[pos:], start=pos, debug=debug)
         except Exception as e:
             print(e)
             return segments
