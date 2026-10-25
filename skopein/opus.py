@@ -75,10 +75,11 @@ class Page:
         sbase = 27 + psegments
         for slen in self.segment_table:
             segment = data[sbase: sbase + slen]
-            if segment.startswith(b"OpusTags"):
-                self.opus_tags = _opustags(segment)
             self.segments.append( segment )
             sbase += slen
+        self.data = b"".join(self.segments)
+        if self.data.startswith(b"OpusTags"):
+            self.opus_tags = _opustags(self.data)
 
 
 
