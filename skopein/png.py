@@ -45,13 +45,31 @@ class Chunk:
             if crc_calc != self.crc32:
                 raise ValueError("Invalid CRC32 for chunk!")
         self.rawbytes = data[:self.length + 12]
+
+class PNGHeader(Chunk):
+    def __init__(self, rawbytes=b'\x89PNG\r\n\x1a\n', *, ctype="", start=0, length=0, flag_crc_check=True):
+        self.rawbytes = rawbytes
+        self.data = b""
+        self.ctype = ""
+        self.start = start
+        self.length = 8
+        self.crc32 = 0
+        self._flag_crc_check = flag_crc_check
+
     
-def parse_png(data, *, flag_crc_check=True):
-    chunks = []
+def parse(data, *, flag_crc_check=True):
+    """
+    Parses the raw bytes of a PNG file into a list of Chunks, plus the PNG
+    header at the start.
+
+    :param data: bytes
+    :return: list[Chunk]
+    """
     if data[:8] != b'\x89PNG\r\n\x1a\n':
         # literal value from the spec, obtained doing
         #   bytes( [137, 80, 78, 71, 13, 10, 26, 10] )
-        return chunks
+        return []
+    chunks = [PNGHeader()]
     pos = 8
     while pos < len(data):
         try:
