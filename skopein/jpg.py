@@ -105,7 +105,7 @@ class Segment:
         self.length = length - 2
         return length - 2
     
-def parse_jpg(data):
+def parse(data):
     """
     Parses the raw bytes of a JPG file to extract a list of all its Segments.
 
@@ -130,7 +130,7 @@ def parse_jpg(data):
         pos += seg.length + 2
     return segments
 
-def parse_dqt(data):
+def read_dqt(data):
     """
     Parses a DQT Segment (or raw bytes from one) to extract the quantization
     tables defined in it. Can extract multiple QTs if present.
