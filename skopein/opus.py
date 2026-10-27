@@ -1,3 +1,12 @@
+"""
+Implements parsing of OGG/Opus files and asscoaited data structures.
+
+References:
+[1] https://xiph.org/ogg/doc/framing.html
+[2] https://www.rfc-editor.org/info/rfc3533/
+[3] https://www.rfc-editor.org/info/rfc7845/
+"""
+
 import struct
 
 class Page:

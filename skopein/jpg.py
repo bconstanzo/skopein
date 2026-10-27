@@ -1,3 +1,7 @@
+"""
+Implements parsing of JPG files and associated data structures.
+"""
+
 import re
 import struct
 

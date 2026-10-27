@@ -1,3 +1,10 @@
+"""
+Implements parsing of PNG files and associated data structures.
+
+References:
+[1] https://www.w3.org/TR/2003/REC-PNG-20031110/#5DataRep
+"""
+
 import re
 import struct
 import zlib
