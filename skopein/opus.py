@@ -9,6 +9,9 @@ References:
 
 import struct
 
+from dataclasses import dataclass
+
+
 class Page:
     def __init__(self, rawbytes, *, start=0, length=0, debug=False):
         """
@@ -37,14 +40,16 @@ class Page:
         self.psegments = 0
         self.segment_table = []
         self.segments = []
+        self.opus_head = None
         self.opus_tags = ()
         self.parse(debug=debug)
 
     def __repr__(self):
         return (
             f"< {self.__class__.__qualname__}"
-            f" {self.pattern}"
             f" {self.htype}"
+            f"{' Head' if self.opus_head else ''}"
+            f"{' Tags' if self.opus_tags else ''}"
             f" start={self.start}"
             f" length={self.length}"
             f" >"
@@ -87,6 +92,8 @@ class Page:
             self.segments.append( segment )
             sbase += slen
         self.data = b"".join(self.segments)
+        if self.data.startswith(b"OpusHead"):
+            self.opus_head = _opushead(self.data)
         if self.data.startswith(b"OpusTags"):
             self.opus_tags = _opustags(self.data)
 
@@ -110,6 +117,25 @@ def parse(data, *, debug=False):
         segments.append(seg)
         pos += 1
     return segments
+
+
+@dataclass
+class OpusHead:
+    """
+    Simple dataclass to keep the OpusHead parsed information.
+    """
+    header: bytes
+    version: int
+    channel_count: int
+    pre_skip: int
+    input_sample_rate: int
+    output_gain: int
+    mapping_family: int
+
+
+def _opushead(data):
+    return OpusHead( *struct.unpack_from("<8sBBHLHB", data) )
+
 
 def _opustags(data):
     header, enclen = struct.unpack_from("<8sL", data)
